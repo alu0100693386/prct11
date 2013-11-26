@@ -102,11 +102,18 @@ class Matrix
 		if other.instance_of? Matrix
 			if(other.row == @row && other.col == @col)
         			aux_vec = Array.new(@row*@col)
-        			for j in 1..row
-            				for i in 1..col
-              					aux_vec[(i-1)+(j-1)*@col]= self[j,i]+other[j,i]	
-            				end
-        			end      
+				x=row
+				y=col
+				x.times do |j|
+					y.times do |i|
+						aux_vec[(i)+(j)*@col]= self[j+1,i+1]+other[j+1,i+1] 
+					end
+				end
+        			#for j in 1..row
+            			#	for i in 1..col
+              			#		aux_vec[(i-1)+(j-1)*@col]= self[j,i]+other[j,i]	
+            			#	end
+        			#end      
       				return (Matrix.new(row, col, aux_vec))
 			else
 				raise "Error de tamaño"		
@@ -145,13 +152,20 @@ class Matrix
 		else
         		if(other.row == @col)
           			aux_matrix = Matrix.new(@row,other.col)
-          			for i in 1..aux_matrix.row
-              				for j in 1..aux_matrix.col
-                  				for k in 1..@col
-                    					aux_matrix[i,j] += @data[i][k]*other.data[k][j]
-                  				end                      
-              				end
-          			end
+          			aux_matrix.row.times do |i|
+					aux_matrix.col.times do |j|
+						@col.times do |k|
+							aux_matrix[i+1,j+1] += (@data[i+1][k+1])*(other.data[k+1][j+1])
+						end
+					end
+				end
+				#for i in 1..aux_matrix.row
+              			#	for j in 1..aux_matrix.col
+                  		#		for k in 1..@col
+                    		#			aux_matrix[i,j] += @data[i][k]*other.data[k][j]
+                  		#		end                      
+              			#	end
+          			#end
         		end
       		end
 		aux_matrix
@@ -529,22 +543,34 @@ class MatrixDispersa < Matrix
 	def +(other)
 		if ((other.instance_of? (MatrixDispersa)) && representacion == "COO" && other.representacion == "COO")
 			v = Array.new(@row*@col)
-                	k, l, c= 0, 0, 0 
-                	for aux_fil in 1..@row
-                        	for aux_col in 1..@col
-                                	if(aux_fil == @IA[k] && aux_col == @JA[k])
-                                        	v[c]=@A[k]
-                                        	k += 1
-                                	else
-                                        	v[c]=0
-                                	end
-					if(aux_fil == other.IA[l] && aux_col == other.JA[l])
-                                                v[c]+=other.A[l]
-                                                l += 1
-					end
-					c+=1 
-                        	end 
-                	end
+			k, l, c= 0, 0, 0 
+			(@row*@col).times do |i|
+				v[i]=0
+				if ((k < @A.size) && (i == ((@JA[k]-1)+(@IA[k]-1)*@col)))
+					v[i]+=@A[k]
+					k+=1
+				end
+				if ((l < other.A.size) && (i== ((other.JA[l]-1)+(other.IA[l]-1)*@col)))
+					v[i]+=other.A[l]
+					l+=1
+				end
+			end			
+	
+                	#for aux_fil in 1..@row
+                        #	for aux_col in 1..@col
+                        #        	if(aux_fil == @IA[k] && aux_col == @JA[k])
+                        #                	v[c]=@A[k]
+                        #                	k += 1
+                        #        	else
+                        #                	v[c]=0
+                        #        	end
+			#		if(aux_fil == other.IA[l] && aux_col == other.JA[l])
+                        #                        v[c]+=other.A[l]
+                        #                        l += 1
+			#		end
+			#		c+=1 
+                        #	end 
+                	#end
 			return MatrixDispersa.new(@row, @col, v, "COO")	
 		elsif ((other.instance_of? (MatrixDispersa)))
 			a,b=self, other
